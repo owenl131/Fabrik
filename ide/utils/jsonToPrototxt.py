@@ -915,7 +915,8 @@ def export_Softmax(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, 
         for key, value in zip(blobNamesTop, caffeLayer):
             ns[key] = value
 
-def export_MultinomialLogisticLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_MultinomialLogisticLoss(layerParams, layerPhase, ns_train, ns_test, 
+                                   blobNamesBottom, blobNamesTop):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.MultinomialLogisticLoss(
           *[ns[x] for x in blobNamesBottom]))
@@ -959,7 +960,8 @@ def export_HingeLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
         for key, value in zip(blobNamesTop, caffeLayer):
             ns[key] = value
 
-def export_SigmoidCrossEntropyLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_SigmoidCrossEntropyLoss(layerParams, layerPhase, ns_train, ns_test, 
+                                   blobNamesBottom, blobNamesTop):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.SigmoidCrossEntropyLoss(
           *[ns[x] for x in blobNamesBottom]))
@@ -1198,7 +1200,9 @@ def json_to_prototxt(net, net_name):
             else:
                 raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
 
-        ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test, blobNames[layerId]['bottom'], blobNames[layerId]['top'])
+        ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test, 
+            blobNames[layerId]['bottom'] if blobNames[layerId] is not None else None, 
+            blobNames[layerId]['top'] if blobNames[layerId] is not None else None)
 
     train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
     test = str(ns_test.to_proto())
