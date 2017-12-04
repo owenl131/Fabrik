@@ -21,191 +21,6 @@ fillerMap = {
     'he_uniform': 'msra'
 }
 
-layer_map = {
-    'ImageData': export_ImageData,
-    'Data': export_Data,
-    'HDF5Data': export_HDF5Data,
-    'HDF5Output': export_HDF5Output,
-    'Input': export_Input,
-    'WindowData': export_WindowData,
-    'MemoryData': export_MemoryData,
-    'DummyData': export_DummyData,
-    'Convolution': export_Convolution,
-    'Pooling': export_Pooling,
-    'Crop': export_Crop,
-    'SPP': export_SPP,
-    'Deconvolution': export_Deconvolution,
-    'Recurrent': export_Recurrent,
-    'RNN': export_RNN,
-    'LSTM': export_LSTM,
-    'InnerProduct': export_InnerProduct,
-    'Dropout': export_Dropout,
-    'Embed': export_Embed,
-    'LRN': export_LRN,
-    'MVN': export_MVN,
-    'BatchNorm': export_BatchNorm,
-    'ReLU': export_ReLU,
-    'PReLU': export_PReLU,
-    'ELU': export_ELU,
-    'Sigmoid': export_Sigmoid,
-    'TanH': export_TanH,
-    'AbsVal': export_AbsVal,
-    'Exp': export_Exp,
-    'Log': export_Log,
-    'BNLL': export_BNLL,
-    'Threshold': export_Threshold,
-    'Bias': export_Bias,
-    'Scale': export_Scale,
-    'Flatten': export_Flatten,
-    'Reshape': export_Reshape,
-    'BatchReindex': export_BatchReindex,
-    'Split': export_Split,
-    'Concat': export_Concat,
-    'Slice': export_Slice,
-    'Eltwise': export_Eltwise,
-    'Filter': export_Filter,
-    'Parameter': export_Parameter,
-    'Reduction': export_Reduction,
-    'Silence': export_Silence,
-    'ArgMax': export_ArgMax,
-    'Softmax': export_Softmax,
-    'MultinomialLogisticLoss': export_MultinomialLogisticLoss,
-    'InfogainLoss': export_InfogainLoss,
-    'SoftmaxWithLoss': export_SoftmaxWithLoss,
-    'EuclideanLoss': export_EuclideanLoss,
-    'HingeLoss': export_HingeLoss,
-    'SigmoidCrossEntropyLoss': export_SigmoidCrossEntropyLoss,
-    'Accuracy': export_Accuracy,
-    'ContrastiveLoss': export_ContrastiveLoss,
-    'Python': export_Python
-}
-
-
-def json_to_prototxt(net, net_name):
-    # assumption: a layer can accept only one input blob
-    # the data layer produces two blobs: data and label
-    # the loss layer requires two blobs: <someData> and label
-    # the label blob is hardcoded.
-    # layers name have to be unique
-
-    # custom DFS of the network
-    input_dim = None
-
-    def get_iterable(x):
-        return (x,)
-
-    stack = []
-    layersProcessed = {}
-    processOrder = []
-    blobNames = {}
-    for layerId in net:
-        layersProcessed[layerId] = False
-        blobNames[layerId] = {
-            'bottom': [],
-            'top': [],
-        }
-    blobId = 0
-
-    def isProcessPossible(layerId):
-        inputs = net[layerId]['connection']['input']
-        for layerId in inputs:
-            if layersProcessed[layerId] is False:
-                return False
-        return True
-
-    # finding the data layer
-    dataLayers = ['ImageData', 'Data', 'HDF5Data', 'Input', 'WindowData', 'MemoryData', 'DummyData']
-    for layerId in net:
-        if (net[layerId]['info']['type'] == 'Python'):
-            if ('endPoint' not in net[layerId]['params'].keys()):
-                net[layerId]['params']['dragDrop'] = True
-                if (not net[layerId]['connection']['input']):
-                    stack.append(layerId)
-            else:
-                if (net[layerId]['params']['endPoint'] == "1, 0"):
-                    stack.append(layerId)
-        if(net[layerId]['info']['type'] in dataLayers):
-            stack.append(layerId)
-
-    def changeTopBlobName(layerId, newName):
-        blobNames[layerId]['top'] = newName
-
-    while len(stack):
-
-        i = len(stack) - 1
-
-        while isProcessPossible(stack[i]) is False:
-            i = i - 1
-
-        layerId = stack[i]
-        stack.remove(stack[i])
-
-        inputs = net[layerId]['connection']['input']
-        if len(inputs) > 0:
-            if len(inputs) == 2 and (net[inputs[0]]['info']['phase'] is not None) \
-                    and (net[inputs[1]]['info']['phase']):
-                commonBlobName = blobNames[inputs[0]]['top']
-                changeTopBlobName(inputs[1], commonBlobName)
-                blobNames[layerId]['bottom'] = commonBlobName
-            else:
-                inputBlobNames = []
-                for inputId in inputs:
-                    inputBlobNames.extend(blobNames[inputId]['top'])
-                blobNames[layerId]['bottom'] = inputBlobNames
-
-        blobNames[layerId]['top'] = ['blob'+str(blobId)]
-        blobId = blobId + 1
-
-        for outputId in net[layerId]['connection']['output']:
-            if outputId not in stack:
-                stack.append(outputId)
-
-        layersProcessed[layerId] = True
-        processOrder.append(layerId)
-
-    ns_train = caffe.NetSpec()
-    ns_test = caffe.NetSpec()
-
-    for layerId in processOrder:
-
-        layer = net[layerId]
-        layerParams = layer['params']
-        layerType = layer['info']['type']
-        layerPhase = layer['info']['phase']
-        if (not layerParams['caffe']):
-            if ('layer_type' in layerParams):
-                raise Exception('Cannot export layer of type ' + layerType + ' ' + layerParams['layer_type']
-                                + ' to Caffe.')
-            else:
-                raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
-
-        ns_train, ns_test = layer_map[layerType](layerParams, ns_train, ns_test)
-
-    train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
-    test = str(ns_test.to_proto())
-
-    # merge the train and test prototxt to get a single train_test prototxt
-    testIndex = [m.start() for m in re.finditer('layer', test)]
-
-    previousIndex = -1
-    for i in range(len(testIndex)):
-        if i < len(testIndex)-1:
-            layer = test[testIndex[i]:testIndex[i+1]]
-        else:
-            layer = test[testIndex[i]:]
-        a = train.find(layer)
-        if a != -1:
-            l = test[testIndex[previousIndex+1]:testIndex[i]]
-            train = train[0:a]+l+train[a:]
-            previousIndex = i
-    if previousIndex < len(testIndex)-1:
-        l = test[testIndex[previousIndex+1]:]
-        train = train + l
-
-    prototxt = train
-
-    return prototxt, input_dim
-
 def export_ImageData(layerParams, ns_train, ns_test):
     transform_param = {}
     transform_param['scale'] = layerParams['scale']
@@ -1223,3 +1038,188 @@ def export_Python(layerParams, ns_train, ns_test):
               python_param=python_param))
             for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
+
+layer_map = {
+    'ImageData': export_ImageData,
+    'Data': export_Data,
+    'HDF5Data': export_HDF5Data,
+    'HDF5Output': export_HDF5Output,
+    'Input': export_Input,
+    'WindowData': export_WindowData,
+    'MemoryData': export_MemoryData,
+    'DummyData': export_DummyData,
+    'Convolution': export_Convolution,
+    'Pooling': export_Pooling,
+    'Crop': export_Crop,
+    'SPP': export_SPP,
+    'Deconvolution': export_Deconvolution,
+    'Recurrent': export_Recurrent,
+    'RNN': export_RNN,
+    'LSTM': export_LSTM,
+    'InnerProduct': export_InnerProduct,
+    'Dropout': export_Dropout,
+    'Embed': export_Embed,
+    'LRN': export_LRN,
+    'MVN': export_MVN,
+    'BatchNorm': export_BatchNorm,
+    'ReLU': export_ReLU,
+    'PReLU': export_PReLU,
+    'ELU': export_ELU,
+    'Sigmoid': export_Sigmoid,
+    'TanH': export_TanH,
+    'AbsVal': export_AbsVal,
+    'Exp': export_Exp,
+    'Log': export_Log,
+    'BNLL': export_BNLL,
+    'Threshold': export_Threshold,
+    'Bias': export_Bias,
+    'Scale': export_Scale,
+    'Flatten': export_Flatten,
+    'Reshape': export_Reshape,
+    'BatchReindex': export_BatchReindex,
+    'Split': export_Split,
+    'Concat': export_Concat,
+    'Slice': export_Slice,
+    'Eltwise': export_Eltwise,
+    'Filter': export_Filter,
+    #'Parameter': export_Parameter,
+    'Reduction': export_Reduction,
+    'Silence': export_Silence,
+    'ArgMax': export_ArgMax,
+    'Softmax': export_Softmax,
+    'MultinomialLogisticLoss': export_MultinomialLogisticLoss,
+    'InfogainLoss': export_InfogainLoss,
+    'SoftmaxWithLoss': export_SoftmaxWithLoss,
+    'EuclideanLoss': export_EuclideanLoss,
+    'HingeLoss': export_HingeLoss,
+    'SigmoidCrossEntropyLoss': export_SigmoidCrossEntropyLoss,
+    'Accuracy': export_Accuracy,
+    'ContrastiveLoss': export_ContrastiveLoss,
+    'Python': export_Python
+}
+
+
+def json_to_prototxt(net, net_name):
+    # assumption: a layer can accept only one input blob
+    # the data layer produces two blobs: data and label
+    # the loss layer requires two blobs: <someData> and label
+    # the label blob is hardcoded.
+    # layers name have to be unique
+
+    # custom DFS of the network
+    input_dim = None
+
+    def get_iterable(x):
+        return (x,)
+
+    stack = []
+    layersProcessed = {}
+    processOrder = []
+    blobNames = {}
+    for layerId in net:
+        layersProcessed[layerId] = False
+        blobNames[layerId] = {
+            'bottom': [],
+            'top': [],
+        }
+    blobId = 0
+
+    def isProcessPossible(layerId):
+        inputs = net[layerId]['connection']['input']
+        for layerId in inputs:
+            if layersProcessed[layerId] is False:
+                return False
+        return True
+
+    # finding the data layer
+    dataLayers = ['ImageData', 'Data', 'HDF5Data', 'Input', 'WindowData', 'MemoryData', 'DummyData']
+    for layerId in net:
+        if (net[layerId]['info']['type'] == 'Python'):
+            if ('endPoint' not in net[layerId]['params'].keys()):
+                net[layerId]['params']['dragDrop'] = True
+                if (not net[layerId]['connection']['input']):
+                    stack.append(layerId)
+            else:
+                if (net[layerId]['params']['endPoint'] == "1, 0"):
+                    stack.append(layerId)
+        if(net[layerId]['info']['type'] in dataLayers):
+            stack.append(layerId)
+
+    def changeTopBlobName(layerId, newName):
+        blobNames[layerId]['top'] = newName
+
+    while len(stack):
+
+        i = len(stack) - 1
+
+        while isProcessPossible(stack[i]) is False:
+            i = i - 1
+
+        layerId = stack[i]
+        stack.remove(stack[i])
+
+        inputs = net[layerId]['connection']['input']
+        if len(inputs) > 0:
+            if len(inputs) == 2 and (net[inputs[0]]['info']['phase'] is not None) \
+                    and (net[inputs[1]]['info']['phase']):
+                commonBlobName = blobNames[inputs[0]]['top']
+                changeTopBlobName(inputs[1], commonBlobName)
+                blobNames[layerId]['bottom'] = commonBlobName
+            else:
+                inputBlobNames = []
+                for inputId in inputs:
+                    inputBlobNames.extend(blobNames[inputId]['top'])
+                blobNames[layerId]['bottom'] = inputBlobNames
+
+        blobNames[layerId]['top'] = ['blob'+str(blobId)]
+        blobId = blobId + 1
+
+        for outputId in net[layerId]['connection']['output']:
+            if outputId not in stack:
+                stack.append(outputId)
+
+        layersProcessed[layerId] = True
+        processOrder.append(layerId)
+
+    ns_train = caffe.NetSpec()
+    ns_test = caffe.NetSpec()
+
+    for layerId in processOrder:
+
+        layer = net[layerId]
+        layerParams = layer['params']
+        layerType = layer['info']['type']
+        layerPhase = layer['info']['phase']
+        if (not layerParams['caffe']):
+            if ('layer_type' in layerParams):
+                raise Exception('Cannot export layer of type ' + layerType + ' ' + layerParams['layer_type']
+                                + ' to Caffe.')
+            else:
+                raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
+
+        ns_train, ns_test = layer_map[layerType](layerParams, ns_train, ns_test)
+
+    train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
+    test = str(ns_test.to_proto())
+
+    # merge the train and test prototxt to get a single train_test prototxt
+    testIndex = [m.start() for m in re.finditer('layer', test)]
+
+    previousIndex = -1
+    for i in range(len(testIndex)):
+        if i < len(testIndex)-1:
+            layer = test[testIndex[i]:testIndex[i+1]]
+        else:
+            layer = test[testIndex[i]:]
+        a = train.find(layer)
+        if a != -1:
+            l = test[testIndex[previousIndex+1]:testIndex[i]]
+            train = train[0:a]+l+train[a:]
+            previousIndex = i
+    if previousIndex < len(testIndex)-1:
+        l = test[testIndex[previousIndex+1]:]
+        train = train + l
+
+    prototxt = train
+
+    return prototxt, input_dim
