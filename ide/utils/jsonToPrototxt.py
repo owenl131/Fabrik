@@ -26,7 +26,7 @@ fillerMap = {
 }
 
 
-def export_ImageData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_ImageData(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     transform_param = {}
     transform_param['scale'] = layerParams['scale']
     transform_param['mirror'] = layerParams['mirror']
@@ -55,21 +55,21 @@ def export_ImageData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.ImageData(
                 transform_param=transform_param,
                 image_data_param=image_data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_Data(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Data(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     transform_param = {}
     transform_param['scale'] = layerParams['scale']
     transform_param['mirror'] = layerParams['mirror']
@@ -99,21 +99,21 @@ def export_Data(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blo
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.Data(
                 transform_param=transform_param,
                 data_param=data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_HDF5Data(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_HDF5Data(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     hdf5_data_param = {}
     hdf5_data_param['source'] = layerParams['source']
     hdf5_data_param['batch_size'] = layerParams['batch_size']
@@ -125,53 +125,53 @@ def export_HDF5Data(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom,
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.HDF5Data(
                 hdf5_data_param=hdf5_data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_HDF5Output(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_HDF5Output(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     hdf5_output_param = {'file_name': layerParams['file_name']}
     if layerPhase is not None:
         caffeLayer = get_iterable(L.HDF5Output(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             hdf5_output_param=hdf5_output_param,
             include={
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.HDF5Output(
-                *[ns[x] for x in blobNamesBottom],
+                *[ns[x] for x in blobNames[layerId]['bottom']],
                 hdf5_output_param=hdf5_output_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_Input(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Input(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     input_param = {'shape': {'dim': map(int, layerParams['dim'].split(','))}}
     for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.Input(
                 input_param=input_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_WindowData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_WindowData(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     transform_param = {}
     transform_param['scale'] = layerParams['scale']
     transform_param['mirror'] = layerParams['mirror']
@@ -201,21 +201,21 @@ def export_WindowData(layerParams, layerPhase, ns_train, ns_test, blobNamesBotto
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.WindowData(
                 transform_param=transform_param,
                 window_data_param=window_data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_MemoryData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_MemoryData(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     memory_data_param = {}
     memory_data_param['batch_size'] = layerParams['batch_size']
     memory_data_param['channels'] = layerParams['channels']
@@ -228,20 +228,20 @@ def export_MemoryData(layerParams, layerPhase, ns_train, ns_test, blobNamesBotto
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.MemoryData(
                 memory_data_param=memory_data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_DummyData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_DummyData(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     # Adding a default size
     dummy_data_param = {}
     dummy_data_param['shape'] = {'dim': map(int, layerParams['dim'].split(','))}
@@ -253,20 +253,20 @@ def export_DummyData(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.DummyData(
                 dummy_data_param=dummy_data_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_Convolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Convolution(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     convolution_param = {}
     if layerParams['kernel_h'] != '':
         convolution_param['kernel_h'] = int(float(layerParams['kernel_h']))
@@ -300,7 +300,7 @@ def export_Convolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBott
     convolution_param['bias_term'] = layerParams['use_bias']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Convolution(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             convolution_param=convolution_param,
             param=[
                 {
@@ -310,11 +310,11 @@ def export_Convolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBott
                     'lr_mult': 2
                 }
             ]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Pooling(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Pooling(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     pooling_param = {}
     if layerParams['kernel_h'] != '':
         pooling_param['kernel_h'] = int(float(layerParams['kernel_h']))
@@ -339,13 +339,13 @@ def export_Pooling(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, 
         pooling_param['pool'] = pool
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Pooling(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             pooling_param=pooling_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Crop(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Crop(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     crop_param = {}
     if layerParams['axis'] != '':
         crop_param['axis'] = int(float(layerParams['axis']))
@@ -353,25 +353,25 @@ def export_Crop(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blo
         crop_param['offset'] = int(float(layerParams['offset']))
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Crop(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             crop_param=crop_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_SPP(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_SPP(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     spp_param = {}
     spp_param['pool'] = layerParams['pool']
     spp_param['pyramid_height'] = layerParams['pyramid_height']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.SPP(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             spp_param=spp_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Deconvolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Deconvolution(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     convolution_param = {}
     if layerParams['kernel_h'] != '':
         convolution_param['kernel_h'] = int(float(layerParams['kernel_h']))
@@ -405,7 +405,7 @@ def export_Deconvolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBo
     convolution_param['bias_term'] = layerParams['use_bias']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Deconvolution(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             convolution_param=convolution_param,
             param=[
                 {
@@ -415,11 +415,11 @@ def export_Deconvolution(layerParams, layerPhase, ns_train, ns_test, blobNamesBo
                     'lr_mult': 2
                 }
             ]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Recurrent(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Recurrent(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     recurrent_param = {}
     recurrent_param['num_output'] = int(layerParams['num_output'])
     if layerParams['weight_filler'] != '':
@@ -440,13 +440,13 @@ def export_Recurrent(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
     recurrent_param['expose_hidden'] = layerParams['expose_hidden']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Recurrent(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             recurrent_param=recurrent_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_RNN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_RNN(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     recurrent_param = {}
     recurrent_param['num_output'] = int(layerParams['num_output'])
     if layerParams['weight_filler'] != '':
@@ -467,13 +467,13 @@ def export_RNN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blob
     recurrent_param['expose_hidden'] = layerParams['expose_hidden']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.RNN(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             recurrent_param=recurrent_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_LSTM(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_LSTM(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     recurrent_param = {}
     recurrent_param['num_output'] = int(layerParams['num_output'])
     if layerParams['weight_filler'] != '':
@@ -494,13 +494,13 @@ def export_LSTM(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blo
     recurrent_param['expose_hidden'] = layerParams['expose_hidden']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.LSTM(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             recurrent_param=recurrent_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_InnerProduct(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_InnerProduct(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inner_product_param = {}
     if layerParams['num_output'] != '':
         inner_product_param['num_output'] = int(float(layerParams['num_output']))
@@ -521,7 +521,7 @@ def export_InnerProduct(layerParams, layerPhase, ns_train, ns_test, blobNamesBot
     inner_product_param['bias_term'] = layerParams['use_bias']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.InnerProduct(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             inner_product_param=inner_product_param,
             param=[
                 {
@@ -531,22 +531,22 @@ def export_InnerProduct(layerParams, layerPhase, ns_train, ns_test, blobNamesBot
                     'lr_mult': 2
                 }
             ]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Dropout(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Dropout(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     # inplace dropout? caffe-tensorflow do not work
     inplace = layerParams['inplace']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Dropout(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Embed(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Embed(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     embed_param = {}
     if layerParams['num_output'] != '':
         embed_param['num_output'] = int(float(layerParams['num_output']))
@@ -569,7 +569,7 @@ def export_Embed(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, bl
     embed_param['bias_term'] = layerParams['bias_term']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Embed(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             embed_param=embed_param,
             param=[
                     {
@@ -581,12 +581,12 @@ def export_Embed(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, bl
                         'decay_mult': 0
                     }
                 ]))
-        # *([ns[x] for x in blobNamesBottom] + [ns.label])))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        # *([ns[x] for x in blobNames[layerId]['bottom']] + [ns.label])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_LRN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_LRN(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     lrn_param = {}
     lrn_param['local_size'] = layerParams['local_size']
@@ -599,13 +599,13 @@ def export_LRN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blob
         lrn_param['norm_region'] = 1
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.LRN(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             lrn_param=lrn_param, in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_MVN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_MVN(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     mvn_param = {}
     mvn_param['normalize_variance'] = layerParams['normalize_variance']
@@ -614,13 +614,13 @@ def export_MVN(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blob
     mvn_param['eps'] = float(layerParams['eps'])
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.MVN(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             mvn_param=mvn_param, in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_BatchNorm(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_BatchNorm(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     batch_norm_param = {}
     batch_norm_param['use_global_stats'] = layerParams['use_global_stats']
@@ -628,79 +628,79 @@ def export_BatchNorm(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
     batch_norm_param['eps'] = float(layerParams['eps'])
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.BatchNorm(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             batch_norm_param=batch_norm_param, in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_ReLU(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_ReLU(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     relu_param = {}
     relu_param['negative_slope'] = layerParams['negative_slope']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.ReLU(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, relu_param=relu_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_PReLU(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_PReLU(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     prelu_param = {}
     prelu_param['channel_shared'] = layerParams['channel_shared']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.PReLU(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, prelu_param=prelu_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_ELU(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_ELU(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     elu_param = {}
     elu_param['alpha'] = layerParams['alpha']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.ELU(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, elu_param=elu_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Sigmoid(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Sigmoid(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Sigmoid(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_TanH(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_TanH(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.TanH(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_AbsVal(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_AbsVal(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.AbsVal(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Power(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Power(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     power_param = {}
     inplace = layerParams['inplace']
     power_param['power'] = layerParams['power']
@@ -708,13 +708,13 @@ def export_Power(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, bl
     power_param['shift'] = layerParams['shift']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Power(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, power_param=power_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Exp(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Exp(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     exp_param = {}
     inplace = layerParams['inplace']
     exp_param['base'] = layerParams['base']
@@ -722,13 +722,13 @@ def export_Exp(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blob
     exp_param['shift'] = layerParams['shift']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Exp(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, exp_param=exp_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Log(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Log(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     log_param = {}
     inplace = layerParams['inplace']
     log_param['base'] = layerParams['base']
@@ -736,35 +736,35 @@ def export_Log(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blob
     log_param['shift'] = layerParams['shift']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Log(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, log_param=log_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_BNLL(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_BNLL(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.BNLL(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Threshold(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Threshold(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     inplace = layerParams['inplace']
     threshold_param = {}
     threshold_param['threshold'] = layerParams['threshold']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Threshold(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             in_place=inplace, threshold_param=threshold_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Bias(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Bias(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     bias_param = {}
     bias_param['axis'] = layerParams['axis']
     bias_param['num_axes'] = layerParams['num_axes']
@@ -777,14 +777,14 @@ def export_Bias(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blo
             bias_param['filler']['type'] = layerParams['filler']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Bias(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             bias_param=bias_param
             ))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Scale(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Scale(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     scale_param = {}
     scale_param['axis'] = layerParams['axis']
     scale_param['num_axes'] = layerParams['num_axes']
@@ -805,74 +805,74 @@ def export_Scale(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, bl
             scale_param['bias_filler']['type'] = layerParams['bias_filler']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Scale(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             scale_param=scale_param
             ))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Flatten(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Flatten(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     flatten_param = {}
     flatten_param['axis'] = layerParams['axis']
     flatten_param['end_axis'] = layerParams['end_axis']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Flatten(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             flatten_param=flatten_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Reshape(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Reshape(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     reshape_param = {'shape': {'dim': map(int, layerParams['dim'].split(','))}}
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Reshape(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             reshape_param=reshape_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_BatchReindex(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_BatchReindex(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.BatchReindex(
-            *[ns[x] for x in blobNamesBottom]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *[ns[x] for x in blobNames[layerId]['bottom']]))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Split(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Split(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Split(
-            *[ns[x] for x in blobNamesBottom]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *[ns[x] for x in blobNames[layerId]['bottom']]))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Concat(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Concat(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Concat(
-            *[ns[x] for x in blobNamesBottom],
-            ntop=len(blobNamesTop)))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *[ns[x] for x in blobNames[layerId]['bottom']],
+            ntop=len(blobNames[layerId]['top'])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Slice(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Slice(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     slice_param = {}
     slice_param['slice_point'] = map(int, layerParams['slice_point'].split(','))
     slice_param['axis'] = layerParams['axis']
     slice_param['slice_dim'] = layerParams['slice_dim']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Slice(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             slice_param=slice_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Eltwise(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Eltwise(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     eltwise_param = {}
     if layerParams['layer_type'] != '':
         elt = layerParams['layer_type']
@@ -887,33 +887,33 @@ def export_Eltwise(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, 
     eltwise_param['operation'] = elt
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Eltwise(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             eltwise_param=eltwise_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Filter(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Filter(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Filter(
-            *[ns[x] for x in blobNamesBottom],
-            ntop=len(blobNamesTop)))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *[ns[x] for x in blobNames[layerId]['bottom']],
+            ntop=len(blobNames[layerId]['top'])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
 # This layer is currently not supported as there is no bottom blob
-# def export_Parameter(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+# def export_Parameter(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
 #     parameter_param = {}
 #     parameter_param['shape'] = map(int, layerParams['shape'].split(','))
 #     for ns in (ns_train, ns_test):
 #        caffeLayer = get_iterable(L.Parameter(
 #            parameter_param=parameter_param))
-#        for key, value in zip(blobNamesTop, caffeLayer):
+#        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
 #            ns[key] = value
 
 
-def export_Reduction(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Reduction(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     reduction_param = {}
     if(layerParams['operation'] == 'SUM'):
         reduction_param['operation'] = 1
@@ -927,144 +927,142 @@ def export_Reduction(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
     reduction_param['coeff'] = layerParams['coeff']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Reduction(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             reduction_param=reduction_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Silence(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Silence(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Silence(
-            *[ns[x] for x in blobNamesBottom],
-            ntop=len(blobNamesTop)))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *[ns[x] for x in blobNames[layerId]['bottom']],
+            ntop=len(blobNames[layerId]['top'])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_ArgMax(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_ArgMax(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     argmax_param = {}
     argmax_param['out_max_val'] = layerParams['out_max_val']
     argmax_param['top_k'] = layerParams['top_k']
     argmax_param['axis'] = layerParams['axis']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.ArgMax(
-            *[ns[x] for x in blobNamesBottom],
+            *[ns[x] for x in blobNames[layerId]['bottom']],
             argmax_param=argmax_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Softmax(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Softmax(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.Softmax(
-            *([ns[x] for x in blobNamesBottom])))
-        # *([ns[x] for x in blobNamesBottom] + [ns.label])))
-        for key, value in zip(blobNamesTop, caffeLayer):
+            *([ns[x] for x in blobNames[layerId]['bottom']])))
+        # *([ns[x] for x in blobNames[layerId]['bottom']] + [ns.label])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_MultinomialLogisticLoss(layerParams, layerPhase, ns_train, ns_test,
-                                   blobNamesBottom, blobNamesTop):
+def export_MultinomialLogisticLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.MultinomialLogisticLoss(
-          *[ns[x] for x in blobNamesBottom]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+          *[ns[x] for x in blobNames[layerId]['bottom']]))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_InfogainLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_InfogainLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     infogain_loss_param = {}
     infogain_loss_param['source'] = layerParams['source']
     infogain_loss_param['axis'] = layerParams['axis']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.MultinomialLogisticLoss(
-          *[ns[x] for x in blobNamesBottom],
+          *[ns[x] for x in blobNames[layerId]['bottom']],
           infogain_loss_param=infogain_loss_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_SoftmaxWithLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_SoftmaxWithLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     softmax_param = {'axis': layerParams['axis']}
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.SoftmaxWithLoss(  # try L['SoftmaxWithLoss']
-            *([ns[x] for x in blobNamesBottom]),
+            *([ns[x] for x in blobNames[layerId]['bottom']]),
             softmax_param=softmax_param))
-        # *([ns[x] for x in blobNamesBottom] + [ns.label])))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        # *([ns[x] for x in blobNames[layerId]['bottom']] + [ns.label])))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_EuclideanLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_EuclideanLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.EuclideanLoss(
-          *[ns[x] for x in blobNamesBottom]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+          *[ns[x] for x in blobNames[layerId]['bottom']]))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_HingeLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_HingeLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     hinge_loss_param = {'norm': layerParams['norm']}
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.HingeLoss(
-          *[ns[x] for x in blobNamesBottom],
+          *[ns[x] for x in blobNames[layerId]['bottom']],
           hinge_loss_param=hinge_loss_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_SigmoidCrossEntropyLoss(layerParams, layerPhase, ns_train, ns_test,
-                                   blobNamesBottom, blobNamesTop):
+def export_SigmoidCrossEntropyLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.SigmoidCrossEntropyLoss(
-          *[ns[x] for x in blobNamesBottom]))
-        for key, value in zip(blobNamesTop, caffeLayer):
+          *[ns[x] for x in blobNames[layerId]['bottom']]))
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Accuracy(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Accuracy(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     accuracy_param = {}
     accuracy_param['top_k'] = layerParams['top_k']
     accuracy_param['axis'] = layerParams['axis']
     if layerPhase is not None:
         # check for correctness
         caffeLayer = get_iterable(L.Accuracy(
-            *([ns[x] for x in blobNamesBottom]),
+            *([ns[x] for x in blobNames[layerId]['bottom']]),
             accuracy_param=accuracy_param,
-            # *([ns[x] for x in blobNamesBottom] + [ns.label]),
+            # *([ns[x] for x in blobNames[layerId]['bottom']] + [ns.label]),
             include={
                 'phase': int(layerPhase)
             }))
         if int(layerPhase) == 0:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_train[key] = value
         elif int(layerPhase) == 1:
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns_test[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.Accuracy(
-                *([ns[x] for x in blobNamesBottom]),
+                *([ns[x] for x in blobNames[layerId]['bottom']]),
                 accuracy_param=accuracy_param))
-            # *([ns[x] for x in blobNamesBottom] + [ns.label])))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            # *([ns[x] for x in blobNames[layerId]['bottom']] + [ns.label])))
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
-def export_ContrastiveLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_ContrastiveLoss(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     contrastive_loss_param = {}
     contrastive_loss_param['margin'] = layerParams['margin']
     contrastive_loss_param['legacy_version'] = layerParams['legacy_version']
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.ContrastiveLoss(
-          *[ns[x] for x in blobNamesBottom],
+          *[ns[x] for x in blobNames[layerId]['bottom']],
           contrastive_loss_param=contrastive_loss_param))
-        for key, value in zip(blobNamesTop, caffeLayer):
+        for key, value in zip(blobNames[layerId]['top'], caffeLayer):
             ns[key] = value
 
 
-def export_Python(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, blobNamesTop):
+def export_Python(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     # Parameters not to be included in param_str
     notParamStr = ['module', 'layer', 'endPoint', 'loss_weight', 'dragDrop', 'param_str']
     hasParamStr = False
@@ -1091,16 +1089,16 @@ def export_Python(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, b
     if 'loss_weight' in layerParams:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.Python(
-              *[ns[x] for x in blobNamesBottom],
+              *[ns[x] for x in blobNames[layerId]['bottom']],
               python_param=python_param, loss_weight=layerParams['loss_weight']))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
     else:
         for ns in (ns_train, ns_test):
             caffeLayer = get_iterable(L.Python(
-              *[ns[x] for x in blobNamesBottom],
+              *[ns[x] for x in blobNames[layerId]['bottom']],
               python_param=python_param))
-            for key, value in zip(blobNamesTop, caffeLayer):
+            for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
 
 
@@ -1258,21 +1256,7 @@ def json_to_prototxt(net, net_name):
                                 + ' to Caffe.')
             else:
                 raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
-
-        blobNamesTop = None
-        blobNamesBottom = None
-
-        if layerId not in blobNames or 'top' not in blobNames[layerId]:
-            assert(blobNames)
-        else:
-            blobNamesTop = blobNames[layerId]['top']
-        if layerId not in blobNames or 'bottom' not in blobNames[layerId]:
-            assert(blobNames)
-        else:
-            blobNamesTop = blobNames[layerId]['bottom']
-            
-        ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test,
-                                                 blobNamesBottom, blobNamesTop)
+        ns_train, ns_test = layer_map[layerType](layerId, layerParams, layerPhase, ns_train, ns_test, blobNames)
 
     train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
     test = str(ns_test.to_proto())
