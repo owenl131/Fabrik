@@ -69,6 +69,7 @@ def export_ImageData(layerId, layerParams, layerPhase, ns_train, ns_test, blobNa
                 ns[key] = value
     return ns_train, ns_test
 
+
 def export_Data(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     transform_param = {}
     transform_param['scale'] = layerParams['scale']
@@ -112,6 +113,7 @@ def export_Data(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
             for key, value in zip(blobNames[layerId]['top'], caffeLayer):
                 ns[key] = value
     return ns_train, ns_test
+
 
 def export_HDF5Data(layerId, layerParams, layerPhase, ns_train, ns_test, blobNames):
     hdf5_data_param = {}
@@ -1324,7 +1326,7 @@ def json_to_prototxt(net, net_name):
                                 + ' to Caffe.')
             else:
                 raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
-        ns_train, ns_test = layer_map[layerType](layerId, layerParams, layerPhase, 
+        ns_train, ns_test = layer_map[layerType](layerId, layerParams, layerPhase,
                                                  ns_train, ns_test, blobNames)
 
     train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
