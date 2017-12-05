@@ -1147,7 +1147,7 @@ layer_map = {
     'Slice': export_Slice,
     'Eltwise': export_Eltwise,
     'Filter': export_Filter,
-#'Parameter': export_Parameter,
+    # 'Parameter': export_Parameter,
     'Reduction': export_Reduction,
     'Silence': export_Silence,
     'ArgMax': export_ArgMax,
@@ -1259,18 +1259,20 @@ def json_to_prototxt(net, net_name):
             else:
                 raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
 
-        blobNamesTop = blobNames[layerId]
-        blobNamesBottom = blobNames[layerId]
-        if blobNamesTop is not None and blobNamesTop['top'] is not None:
-            blobNamesTop = blobNamesTop['top']
+        blobNamesTop = None
+        blobNamesBottom = None
+
+        if layerId not in blobNames or 'top' not in blobNames[layerId]:
+            assert(blobNames)
         else:
-            blobNamesTop = []
-        if blobNamesBottom is not None and blobNamesBottom['bottom'] is not None:
-            blobNamesBottom = blobNamesBottom['bottom']
+            blobNamesTop = blobNames[layerId]['top']
+        if layerId not in blobNames or 'bottom' not in blobNames[layerId]:
+            assert(blobNames)
         else:
-            blobNamesBottom = []
-        ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test, 
-            blobNamesBottom, blobNamesTop)
+            blobNamesTop = blobNames[layerId]['bottom']
+            
+        ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test,
+                                                 blobNamesBottom, blobNamesTop)
 
     train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
     test = str(ns_test.to_proto())
