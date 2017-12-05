@@ -964,7 +964,7 @@ def export_Softmax(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom, 
             ns[key] = value
 
 
-def export_MultinomialLogisticLoss(layerParams, layerPhase, ns_train, ns_test, 
+def export_MultinomialLogisticLoss(layerParams, layerPhase, ns_train, ns_test,
                                    blobNamesBottom, blobNamesTop):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.MultinomialLogisticLoss(
@@ -1014,7 +1014,7 @@ def export_HingeLoss(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom
             ns[key] = value
 
 
-def export_SigmoidCrossEntropyLoss(layerParams, layerPhase, ns_train, ns_test, 
+def export_SigmoidCrossEntropyLoss(layerParams, layerPhase, ns_train, ns_test,
                                    blobNamesBottom, blobNamesTop):
     for ns in (ns_train, ns_test):
         caffeLayer = get_iterable(L.SigmoidCrossEntropyLoss(
@@ -1028,6 +1028,7 @@ def export_Accuracy(layerParams, layerPhase, ns_train, ns_test, blobNamesBottom,
     accuracy_param['top_k'] = layerParams['top_k']
     accuracy_param['axis'] = layerParams['axis']
     if layerPhase is not None:
+        # check for correctness
         caffeLayer = get_iterable(L.Accuracy(
             *([ns[x] for x in blobNamesBottom]),
             accuracy_param=accuracy_param,
@@ -1146,7 +1147,7 @@ layer_map = {
     'Slice': export_Slice,
     'Eltwise': export_Eltwise,
     'Filter': export_Filter,
-    #'Parameter': export_Parameter,
+#'Parameter': export_Parameter,
     'Reduction': export_Reduction,
     'Silence': export_Silence,
     'ArgMax': export_ArgMax,
@@ -1258,9 +1259,18 @@ def json_to_prototxt(net, net_name):
             else:
                 raise Exception('Cannot export layer of type ' + layerType + ' to Caffe.')
 
+        blobNamesTop = blobNames[layerId]
+        blobNamesBottom = blobNames[layerId]
+        if blobNamesTop is not None and blobNamesTop['top'] is not None:
+            blobNamesTop = blobNamesTop['top']
+        else:
+            blobNamesTop = []
+        if blobNamesBottom is not None and blobNamesBottom['bottom'] is not None:
+            blobNamesBottom = blobNamesBottom['bottom']
+        else:
+            blobNamesBottom = []
         ns_train, ns_test = layer_map[layerType](layerParams, layerPhase, ns_train, ns_test, 
-            blobNames[layerId]['bottom'] if blobNames[layerId] is not None else [], 
-            blobNames[layerId]['top'] if blobNames[layerId] is not None else [])
+            blobNamesBottom, blobNamesTop)
 
     train = 'name: "' + net_name + '"\n' + str(ns_train.to_proto())
     test = str(ns_test.to_proto())
