@@ -8,6 +8,8 @@ import Tabs from './tabs';
 import data from './data';
 import netLayout from './netLayout_vertical';
 import Modal from 'react-modal';
+import ModelZoo from './modelZoo';
+import $ from 'jquery'
 
 const infoStyle = {
   content : {
@@ -61,8 +63,13 @@ class Content extends React.Component {
     this.saveDb = this.saveDb.bind(this);
     this.loadDb = this.loadDb.bind(this);
     this.infoModal = this.infoModal.bind(this);
+    this.toggleSidebar = this.toggleSidebar.bind(this);
+    this.zooModal = this.zooModal.bind(this);
     this.modalContent = null;
     this.modalHeader = null;
+    // Might need to improve the logic of clickEvent
+    this.clickEvent = false;
+    this.handleClick = this.handleClick.bind(this);
   }
   openModal() {
     this.setState({modalIsOpen: true});
@@ -184,10 +191,10 @@ class Content extends React.Component {
   exportNet(framework) {
     this.dismissAllErrors();
     const error = [];
-    const net = this.state.net;
+    const netObj = JSON.parse(JSON.stringify(this.state.net));
 
-    Object.keys(net).forEach(layerId => {
-      const layer = net[layerId];
+    Object.keys(netObj).forEach(layerId => {
+      const layer = netObj[layerId];
       Object.keys(layer.params).forEach(param => {
         layer.params[param] = layer.params[param][0];
         const paramData = data[layer.info.type].params[param];
@@ -203,7 +210,7 @@ class Content extends React.Component {
     if (error.length) {
       this.setState({ error });
     } else {
-      const netData = JSON.parse(JSON.stringify(this.state.net));
+      const netData = netObj;
       Object.keys(netData).forEach(layerId => {
         delete netData[layerId].state;
       });
@@ -238,6 +245,8 @@ class Content extends React.Component {
   }
   importNet(framework, id) {
     this.dismissAllErrors();
+    this.closeModal();
+    this.clickEvent = false;
     const url = {'caffe': '/caffe/import', 'keras': '/keras/import', 'tensorflow': '/tensorflow/import'};
     const formData = new FormData();
     const caffe_fillers = ['constant', 'gaussian', 'positive_unitball', 'uniform', 'xavier', 'msra', 'bilinear'];
@@ -667,6 +676,80 @@ class Content extends React.Component {
                          Keras, and TensorFlow.`;
     this.openModal();
   }
+  toggleSidebar() {
+    $('#sidebar').toggleClass('visible');
+    $('.sidebar-button').toggleClass('close');
+  }
+  zooModal() {
+    this.modalHeader = null;
+    this.modalContent = <ModelZoo importNet={this.importNet}/>;
+    this.openModal();
+  }
+  
+  handleClick(event) {
+    event.preventDefault();
+    this.clickEvent = true;
+
+    const net = this.state.net;
+    const id = event.target.id;
+    const prev = net[`l${this.state.nextLayerId-1}`];
+    const next = data[id];
+    const zoom = instance.getZoom();    
+    const layer = {};
+    let phase = this.state.selectedPhase;
+    
+    if (this.state.nextLayerId>0 //makes sure that there are other layers 
+      &&data[prev.info.type].endpoint.src == "Bottom" //makes sure that the source has a bottom
+      &&next.endpoint.trg == "Top") { //makes sure that the target has a top
+        layer.connection = { input: [], output: [] };
+        layer.info = {
+          type: id.toString(),
+          phase,
+          class: ''
+        }
+        layer.params = {
+          'endPoint' : [next['endpoint'], false] //This key is endpoint in data.js, but endPoint in everywhere else.
+        }          
+        Object.keys(next.params).forEach(j => {
+          layer.params[j] = [next.params[j].value, false]; //copys all params from data.js
+        });    
+        layer.props = JSON.parse(JSON.stringify(next.props)) //copys all props rom data.js
+        layer.state = {
+          top: `${(parseInt(prev.state.top.split('px')[0])/zoom + 80)}px`, // This makes the new layer is exactly 80px under the previous one.
+          left: `${(parseInt(prev.state.left.split('px')[0])/zoom)}px`, // This aligns the new layer with the previous one.
+          class: '' 
+        }
+        layer.props.name = `${next.name}${this.state.nextLayerId}`;          
+        this.addNewLayer(layer);
+    }
+
+    else if (Object.keys(net).length == 0) { // if there are no layers
+      layer.connection = { input: [], output: [] };
+      layer.info = {
+            type: id.toString(),
+            phase,
+            class: ''
+          }
+      layer.params = {
+        'endPoint' : [next['endpoint'], false] //This key is endpoint in data.js, but endPoint in everywhere else.
+      }          
+      Object.keys(next.params).forEach(j => {
+        layer.params[j] = [next.params[j].value, false];  //copys all params from data.js
+      });    
+      layer.props = JSON.parse(JSON.stringify(next.props)) //copys all props from data.js
+      const height = Math.round(0.05*window.innerHeight, 0); // 5% of screen height, rounded to zero decimals
+      const width = Math.round(0.35*window.innerWidth, 0); // 35% of screen width, rounded to zero decimals
+      var top = height + Math.ceil(41-height);
+      var left = width;
+      layer.state = {
+            top: `${top}px`,
+            left: `${left}px`,
+            class: '' 
+          }
+      layer.props.name = `${next.name}${this.state.nextLayerId}`;          
+      this.addNewLayer(layer); 
+    }
+  }
   render() {
     let loader = null;
     if (this.state.load) {
@@ -676,6 +759,7 @@ class Content extends React.Component {
     }
     return (
         <div id="parent">
+        <a className="sidebar-button" onClick={this.toggleSidebar}></a>
         <div id="sidebar">
           <div id="logo_back">
             <a href="http://fabrik.cloudcv.org"><img src={'/static/img/fabrik_t.png'} className="img-responsive" alt="logo" id="logo"/></a>
@@ -686,9 +770,12 @@ class Content extends React.Component {
               exportNet={this.exportNet}
               importNet={this.importNet}
               saveDb={this.saveDb}
+              zooModal={this.zooModal}
              />
              <h5 className="sidebar-heading">INSERT LAYER</h5>
-             <Pane />
+             <Pane 
+             handleClick = {this.handleClick}
+             />
              <div className="text-center">
               <Tabs selectedPhase={this.state.selectedPhase} changeNetPhase={this.changeNetPhase} />
              </div>
@@ -713,6 +800,7 @@ class Content extends React.Component {
             error={this.state.error}
             dismissError={this.dismissError}
             addError={this.addError}
+            clickEvent={this.clickEvent}
           />
           <SetParams
             net={this.state.net}
