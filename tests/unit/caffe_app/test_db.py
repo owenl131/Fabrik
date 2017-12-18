@@ -1,26 +1,15 @@
-import caffe
 import json
 import os
 import unittest
-from datetime import datetime
-from caffe import to_proto
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import Client
-from caffe_app.models import ModelExport
 
 
 class SaveToDBTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
-        # ModelExport.objects.create(
-        #     name='name',
-        #     id='test_db_test-id',
-        #     network={'net': 'testnet',
-        #              'name': 'testname'},
-        #     createdOn=datetime.now(),
-        #     updatedOn=datetime.now())
 
     def test_save_json(self):
         tests = open(os.path.join(settings.BASE_DIR, 'tests', 'unit', 'ide',
