@@ -1,0 +1,63 @@
+import caffe
+import json
+import os
+import unittest
+from datetime import datetime
+from caffe import to_proto
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.test import Client
+from caffe_app.models import ModelExport
+
+
+class SaveToDBTest(unittest.TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        # ModelExport.objects.create(
+        #     name='name',
+        #     id='test_db_test-id',
+        #     network={'net': 'testnet',
+        #              'name': 'testname'},
+        #     createdOn=datetime.now(),
+        #     updatedOn=datetime.now())
+
+    def test_save_json(self):
+        tests = open(os.path.join(settings.BASE_DIR, 'tests', 'unit', 'ide',
+                                  'caffe_export_test.json'), 'r')
+        net = json.load(tests)['net']
+        response = self.client.post(
+            reverse('saveDB'),
+            {'net': net, 'net_name': 'netname'})
+        response = json.loads(response.content)
+        self.assertEqual(response['result'], 'success')
+
+    def test_save_jsonstring(self):
+        tests = open(os.path.join(settings.BASE_DIR, 'tests', 'unit', 'ide',
+                                  'caffe_export_test.json'), 'r')
+        net = json.load(tests)['net']
+        response = self.client.post(
+            reverse('saveDB'),
+            {'net': json.dumps(net), 'net_name': 'netname'})
+        response = json.loads(response.content)
+        self.assertEqual(response['result'], 'success')
+
+    def test_load(self):
+        response = self.client.post(
+            reverse('saveDB'),
+            {'net': '{"net": "testnet"}', 'net_name': 'name'})
+        response = json.loads(response.content)
+        self.assertEqual(response['result'], 'success')
+        self.assertTrue('id' in response)
+        proto_id = response['id']
+        response = self.client.post(reverse('loadDB'), {'proto_id': proto_id})
+        response = json.loads(response.content)
+        self.assertEqual(response['result'], 'success')
+        self.assertEqual(response['net_name'], 'name')
+
+    def test_load_nofile(self):
+        response = self.client.post(reverse('loadDB'),
+                                    {'proto_id': 'inexistent'})
+        response = json.loads(response.content)
+        self.assertEqual(response['result'], 'error')
+        self.assertEqual(response['error'], 'No network file found')
