@@ -56,6 +56,7 @@ class ImportJsonTest(unittest.TestCase):
         self.assertEqual(response['error'], 'Invalid JSON')
 
     def test_keras_import_sample_id(self):
+        # Test 1
         response = self.client.post(
             reverse('keras-import'),
             {'sample_id': 'vgg16'})
@@ -63,8 +64,7 @@ class ImportJsonTest(unittest.TestCase):
         self.assertEqual(response['result'], 'success')
         self.assertEqual(response['net_name'], 'vgg16')
         self.assertTrue('net' in response)
-
-    def test_keras_import_invalid_sample_id(self):
+        # Test 2
         response = self.client.post(
             reverse('keras-import'),
             {'sample_id': 'shapeCheck4D'})
