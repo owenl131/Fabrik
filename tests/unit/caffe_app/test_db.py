@@ -21,16 +21,6 @@ class SaveToDBTest(unittest.TestCase):
         response = json.loads(response.content)
         self.assertEqual(response['result'], 'success')
 
-    def test_save_jsonstring(self):
-        tests = open(os.path.join(settings.BASE_DIR, 'tests', 'unit', 'ide',
-                                  'caffe_export_test.json'), 'r')
-        net = json.load(tests)['net']
-        response = self.client.post(
-            reverse('saveDB'),
-            {'net': json.dumps(net), 'net_name': 'netname'})
-        response = json.loads(response.content)
-        self.assertEqual(response['result'], 'success')
-
     def test_load(self):
         response = self.client.post(
             reverse('saveDB'),
