@@ -181,6 +181,9 @@ class Content extends React.Component {
     const net = this.state.net;
     const input = net[layerId].connection.input;
     const output = net[layerId].connection.output;
+    const layerIdNum = parseInt(layerId.substring(1,layerId.length)); //numeric value of the layerId
+    const nextLayerId = this.state.nextLayerId - 1 == layerIdNum ? layerIdNum : this.state.nextLayerId; 
+       //if last layer was deleted nextLayerId is replaced by deleted layer's id
     let index;
     delete net[layerId];
     input.forEach(inputId => {
@@ -191,7 +194,7 @@ class Content extends React.Component {
       index = net[outputId].connection.input.indexOf(layerId);
       net[outputId].connection.input.splice(index, 1);
     });
-    this.setState({ net, selectedLayer: null });
+    this.setState({ net, selectedLayer: null, nextLayerId: nextLayerId });
   }
   updateParameters(layer, net) {
     // obtain the total parameters of the model
@@ -289,7 +292,7 @@ class Content extends React.Component {
       Object.keys(layer.params).forEach(param => {
         layer.params[param] = layer.params[param][0];
         const paramData = data[layer.info.type].params[param];
-        if (layer.info.type == 'Python' && param == 'endPoint'){
+        if (layer.info.type == 'Python' || param == 'endPoint'){
           return;
         }
         if (paramData.required === true && layer.params[param] === '') {
@@ -816,6 +819,8 @@ class Content extends React.Component {
           class: '' 
         }
         layer.props.name = `${next.name}${this.state.nextLayerId}`;          
+        prev.connection.output.push(`l${this.state.nextLayerId}`);
+        layer.connection.input.push(`l${this.state.nextLayerId-1}`);
         this.addNewLayer(layer);
     }
 
